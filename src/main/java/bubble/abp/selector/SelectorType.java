@@ -1,8 +1,8 @@
-package bubble.abp.spec.selector;
+package bubble.abp.selector;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
-import static bubble.abp.spec.selector.SelectorParseError.parseError;
+import static bubble.abp.selector.SelectorParseError.parseError;
 
 public enum SelectorType {
 

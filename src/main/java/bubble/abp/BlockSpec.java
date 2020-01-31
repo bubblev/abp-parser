@@ -1,6 +1,6 @@
-package bubble.abp.spec;
+package bubble.abp;
 
-import bubble.abp.spec.selector.BlockSelector;
+import bubble.abp.selector.BlockSelector;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import org.cobbzilla.util.string.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-import static bubble.abp.spec.selector.BlockSelector.buildSelector;
+import static bubble.abp.selector.BlockSelector.buildSelector;
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.http.HttpContentTypes.contentType;
 

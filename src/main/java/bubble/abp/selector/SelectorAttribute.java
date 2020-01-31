@@ -1,11 +1,11 @@
-package bubble.abp.spec.selector;
+package bubble.abp.selector;
 
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.cobbzilla.util.collection.ArrayUtil;
 import org.cobbzilla.util.collection.NameAndValue;
 
-import static bubble.abp.spec.selector.SelectorParseError.parseError;
+import static bubble.abp.selector.SelectorParseError.parseError;
 
 @NoArgsConstructor @Accessors(chain=true)
 @ToString(of={"name", "comparison", "value", "style"})

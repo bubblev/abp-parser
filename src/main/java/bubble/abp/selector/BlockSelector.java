@@ -1,4 +1,4 @@
-package bubble.abp.spec.selector;
+package bubble.abp.selector;
 
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -6,8 +6,8 @@ import org.cobbzilla.util.collection.ArrayUtil;
 
 import java.util.StringTokenizer;
 
-import static bubble.abp.spec.selector.SelectorAttributeParseState.*;
-import static bubble.abp.spec.selector.SelectorParseError.parseError;
+import static bubble.abp.selector.SelectorAttributeParseState.*;
+import static bubble.abp.selector.SelectorParseError.parseError;
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 
 @NoArgsConstructor @Accessors(chain=true)

@@ -1,11 +1,11 @@
-package bubble.abp.spec.selector;
+package bubble.abp.selector;
 
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.collection.ArrayUtil;
 
-import static bubble.abp.spec.selector.SelectorParseError.parseError;
+import static bubble.abp.selector.SelectorParseError.parseError;
 
 @NoArgsConstructor @Accessors(chain=true)
 @EqualsAndHashCode @ToString @Slf4j

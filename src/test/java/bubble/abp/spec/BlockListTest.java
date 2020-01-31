@@ -1,5 +1,9 @@
 package bubble.abp.spec;
 
+import bubble.abp.BlockDecision;
+import bubble.abp.BlockDecisionType;
+import bubble.abp.BlockList;
+import bubble.abp.BlockSpec;
 import org.junit.Test;
 
 import java.util.Arrays;

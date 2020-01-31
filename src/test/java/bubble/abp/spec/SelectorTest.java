@@ -1,15 +1,16 @@
 package bubble.abp.spec;
 
-import bubble.abp.spec.selector.*;
+import bubble.abp.BlockListSource;
+import bubble.abp.selector.*;
 import org.cobbzilla.util.collection.NameAndValue;
 import org.junit.Test;
 
 import java.io.InputStream;
 
-import static bubble.abp.spec.selector.SelectorAttributeComparison.*;
-import static bubble.abp.spec.selector.SelectorOperator.encloses;
-import static bubble.abp.spec.selector.SelectorOperator.next;
-import static bubble.abp.spec.selector.SelectorType.*;
+import static bubble.abp.selector.SelectorAttributeComparison.*;
+import static bubble.abp.selector.SelectorOperator.encloses;
+import static bubble.abp.selector.SelectorOperator.next;
+import static bubble.abp.selector.SelectorType.*;
 import static org.cobbzilla.util.daemon.ZillaRuntime.shortError;
 import static org.cobbzilla.util.io.StreamUtil.loadResourceAsStream;
 import static org.junit.Assert.assertEquals;

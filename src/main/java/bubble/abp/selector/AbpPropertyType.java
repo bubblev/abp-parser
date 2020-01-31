@@ -1,4 +1,4 @@
-package bubble.abp.spec.selector;
+package bubble.abp.selector;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
