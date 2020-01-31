@@ -173,7 +173,6 @@ public class SelectorTest {
             }.download();
             assertEquals("error parsing some lines", 0, source.getBlockList().getWhitelist().size());
             assertEquals("error parsing some lines", 553, source.getBlockList().getBlacklist().size());
-            System.out.println("saved lists!");
         } catch (Exception e) {
             fail("testComplexList: badness: "+shortError(e));
         }
