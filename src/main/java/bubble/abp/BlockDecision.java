@@ -8,6 +8,8 @@ import lombok.experimental.Accessors;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
+
 @NoArgsConstructor @Accessors(chain=true)
 public class BlockDecision {
 
@@ -16,6 +18,7 @@ public class BlockDecision {
 
     @Getter @Setter BlockDecisionType decisionType = BlockDecisionType.allow;
     @Getter @Setter List<BlockSpec> specs;
+    public boolean hasSpecs () { return !empty(specs); }
 
     public BlockDecision add(BlockSpec spec) {
         if (specs == null) specs = new ArrayList<>();

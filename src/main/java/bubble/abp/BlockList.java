@@ -39,12 +39,16 @@ public class BlockList {
     }
 
     public BlockDecision getDecision(String fqdn, String path) {
+        return getDecision(fqdn, path, null);
+    }
+
+    public BlockDecision getDecision(String fqdn, String path, String contentType) {
         for (BlockSpec allow : whitelist) {
-            if (allow.matches(fqdn, path)) return BlockDecision.ALLOW;
+            if (allow.matches(fqdn, path, contentType)) return BlockDecision.ALLOW;
         }
         final BlockDecision decision = new BlockDecision();
         for (BlockSpec block : blacklist) {
-            if (block.matches(fqdn, path)) {
+            if (block.matches(fqdn, path, contentType)) {
                 if (!block.hasSelector()) return BlockDecision.BLOCK;
                 decision.add(block);
             } else if (block.hasSelector()) {

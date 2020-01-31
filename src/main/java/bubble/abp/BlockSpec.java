@@ -126,17 +126,19 @@ public class BlockSpec {
         return specs;
     }
 
-    public boolean matches(String fqdn, String path) {
+    public boolean matches(String fqdn, String path, String contentType) {
+        if (contentType == null) contentType = contentType(contentType);
+
         if (target.hasDomainRegex() && target.getDomainPattern().matcher(fqdn).find()) {
-            return checkDomainExclusionsAndType(fqdn, contentType(path));
+            return checkDomainExclusionsAndType(fqdn, contentType);
 
         } else if (target.hasRegex()) {
             if (target.getRegexPattern().matcher(path).find()) {
-                return checkDomainExclusionsAndType(fqdn, contentType(path));
+                return checkDomainExclusionsAndType(fqdn, contentType);
             }
             final String full = fqdn + path;
             if (target.getRegexPattern().matcher(full).find()) {
-                return checkDomainExclusionsAndType(fqdn, contentType(path));
+                return checkDomainExclusionsAndType(fqdn, contentType);
             };
         }
         return false;
