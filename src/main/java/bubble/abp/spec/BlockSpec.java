@@ -30,6 +30,7 @@ public class BlockSpec {
     public boolean hasTypeMatches () { return !empty(typeMatches); }
 
     @Getter private List<String> typeExclusions;
+    @Getter private List<String> otherOptions;
 
     @Getter private BlockSelector selector;
     public boolean hasSelector() { return selector != null; }
@@ -49,7 +50,8 @@ public class BlockSpec {
                         if (typeExclusions == null) typeExclusions = new ArrayList<>();
                         typeExclusions.add(type);
                     } else {
-                        log.warn("unsupported option (ignoring): " + opt);
+                        if (otherOptions == null) otherOptions = new ArrayList<>();
+                        otherOptions.add(opt);
                     }
 
                 } else {
@@ -57,7 +59,8 @@ public class BlockSpec {
                         if (typeMatches == null) typeMatches = new ArrayList<>();
                         typeMatches.add(opt);
                     } else {
-                        log.warn("unsupported option (ignoring): "+opt);
+                        if (otherOptions == null) otherOptions = new ArrayList<>();
+                        otherOptions.add(opt);
                     }
                 }
             }
@@ -102,7 +105,7 @@ public class BlockSpec {
                 // no options, but selector present. split into target + selector
                 targets = BlockSpecTarget.parse(line.substring(0, selectorStartPos));
                 options = null;
-                selector = line.substring(selectorStartPos+1);
+                selector = line.substring(selectorStartPos);
             }
         } else {
             if (selectorStartPos == -1) {
@@ -114,7 +117,7 @@ public class BlockSpec {
                 // all 3 elements present
                 targets = BlockSpecTarget.parse(line.substring(0, optionStartPos));
                 options = StringUtil.splitAndTrim(line.substring(optionStartPos + 1, selectorStartPos), ",");
-                selector = line.substring(selectorStartPos+1);
+                selector = line.substring(selectorStartPos);
             }
         }
         final List<BlockSpec> specs = new ArrayList<>();

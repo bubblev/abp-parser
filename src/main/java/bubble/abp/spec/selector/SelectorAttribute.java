@@ -66,6 +66,6 @@ public class SelectorAttribute {
         final int colonPos = style.indexOf(':');
         if (colonPos == -1) throw parseError("invalid style (expected colon char): "+style);
         if (colonPos == 0 || colonPos == style.length()-1) throw parseError("invalid style (no name or value): "+style);
-        return new NameAndValue(style.substring(0, colonPos), style.substring(colonPos+1));
+        return new NameAndValue(style.substring(0, colonPos).trim(), style.substring(colonPos+1).trim());
     }
 }

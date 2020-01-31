@@ -9,6 +9,7 @@ import org.cobbzilla.util.http.HttpUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.*;
@@ -25,8 +26,10 @@ public class BlockListSource {
 
     @Getter @Setter private BlockList blockList = new BlockList();
 
+    public InputStream getUrlInputStream() throws IOException { return HttpUtil.get(url); }
+
     public BlockListSource download() throws IOException {
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(HttpUtil.get(url)))) {
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(getUrlInputStream()))) {
             String line;
             boolean firstLine = true;
             while ( (line = r.readLine()) != null ) {

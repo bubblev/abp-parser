@@ -29,11 +29,21 @@ public class BlockSelector {
         } else {
             if (dotPos == 0 || dotPos == n.length()-1) throw parseError("invalid name: "+n);
             if (type == null) throw parseError("type not set, cannot set name: "+n);
-            name = n.substring(0, dotPos);
-            cls = n.substring(dotPos + 1);
             switch (type) {
-                case id: type = SelectorType.id_and_cls; break;
-                case tag: type = SelectorType.tag_and_cls; break;
+                case id:
+                    name = n.substring(0, dotPos);
+                    cls = n.substring(dotPos + 1);
+                    type = SelectorType.id_and_cls;
+                    break;
+                case tag:
+                    name = n.substring(0, dotPos);
+                    cls = n.substring(dotPos + 1);
+                    type = SelectorType.tag_and_cls;
+                    break;
+                case cls:
+                    name = n;
+                    cls = n;
+                    break;
                 default: throw parseError("cannot add class to type "+type);
             }
         }
@@ -80,40 +90,58 @@ public class BlockSelector {
             nameSet = true;
             final StringTokenizer st = new StringTokenizer(spec, "[] ", true);
             SelectorAttributeParseState state = seeking_open_bracket;
-            String attrSpec = null;
+            String attrSpec = "";
             int charsConsumed = 0;
             while (st.hasMoreTokens()) {
                 final String tok = st.nextToken();
-                charsConsumed += tok.length();
                 switch (tok) {
                     case "[":
                         if (state != seeking_open_bracket) throw parseError("invalid attribute (expecting open bracket): "+spec);
+                        charsConsumed += tok.length();
                         state = seeking_close_bracket;
+                        attrSpec = "";
                         break;
 
                     case "]":
                         if (state != seeking_close_bracket) throw parseError("invalid attribute (expecting close bracket): "+spec);
                         state = seeking_open_bracket;
+                        if (empty(attrSpec)) throw parseError("invalid attribute: "+spec);
                         sel.attributes = ArrayUtil.append(sel.attributes, SelectorAttribute.buildAttribute(attrSpec));
+                        charsConsumed += tok.length();
                         break;
 
                     case " ":
-                        if (state != seeking_open_bracket) throw parseError("invalid attribute (unexpected space, expecting close bracket): "+spec);
-                        state = finished;
+                        if (state == seeking_open_bracket) {
+                            state = finished;
+                        } else {
+                            attrSpec += tok;
+                            charsConsumed += tok.length();
+                        }
                         break;
 
                     default:
-                        attrSpec = tok;
+                        if (state == seeking_open_bracket) {
+                            state = finished;
+                            break;
+                        }
+                        attrSpec += tok;
+                        charsConsumed += tok.length();
                         break;
                 }
                 if (state == finished) break;
             }
             spec = spec.substring(charsConsumed);
         }
+        if (spec.trim().length() == 0) {
+            return sel;
+        }
 
+        abpPos = spec.indexOf(":-");
+        spacePos = spec.indexOf(' ');
         if (abpPos != -1 && spacePos != -1 && abpPos > spacePos) abpPos = -1;
         if (abpPos != -1) {
-            sel.setName(spec.substring(0, abpPos));
+            abpPos = spec.indexOf(":-");
+            if (!nameSet) sel.setName(spec.substring(0, abpPos));
             nameSet = true;
 
             int openParen = spec.indexOf("(");
@@ -142,6 +170,8 @@ public class BlockSelector {
             sel.setAbp(AbpClause.buildAbpClause(abpClauseType, abpSpec.toString()));
             spec = spec.substring(abpSpec.length());
         }
+
+        if (spec.trim().length() == 0) return sel;
 
         if (!nameSet) {
             spacePos = spec.indexOf(' ');

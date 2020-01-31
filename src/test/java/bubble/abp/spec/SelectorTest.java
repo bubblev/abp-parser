@@ -4,11 +4,16 @@ import bubble.abp.spec.selector.*;
 import org.cobbzilla.util.collection.NameAndValue;
 import org.junit.Test;
 
+import java.io.InputStream;
+
 import static bubble.abp.spec.selector.SelectorAttributeComparison.*;
 import static bubble.abp.spec.selector.SelectorOperator.encloses;
 import static bubble.abp.spec.selector.SelectorOperator.next;
 import static bubble.abp.spec.selector.SelectorType.*;
+import static org.cobbzilla.util.daemon.ZillaRuntime.shortError;
+import static org.cobbzilla.util.io.StreamUtil.loadResourceAsStream;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class SelectorTest {
 
@@ -112,23 +117,65 @@ public class SelectorTest {
                             new AbpContains().setType(AbpContainsType.selector).setSelector(
                                     new BlockSelector().setType(tag).setName("a").setAttributes(new SelectorAttribute[]{
                                             new SelectorAttribute().setName("href").setComparison(contains).setValue("example.com")
-                                    }))))},
+                                    }))))}
+    };
+
+    public static final Object[][] ODD_TESTS = new Object[][] {
+            {"#?#.cls-content span[id^=\"i-\"]:-abp-contains(Automatic updates)", new BlockSelector()
+            .setAbpEnabled(true).setType(cls).setName("cls-content").setOperator(encloses).setNext(
+                    new BlockSelector().setType(tag).setName("span").setAttributes(new SelectorAttribute[]{
+                            new SelectorAttribute().setName("id").setComparison(startsWith).setValue("i-")
+                    }).setAbp(new AbpClause().setType(AbpClauseType.contains).setContains(
+                            new AbpContains().setType(AbpContainsType.literal).setValue("Automatic updates")
+                    ))
+            )},
+
+            {"#?#b:-abp-has(a[target^=\"reimage\"])", new BlockSelector()
+                    .setAbpEnabled(true).setType(tag).setName("b").setAbp(
+                            new AbpClause().setType(AbpClauseType.has).setSelector(
+                                    new BlockSelector().setType(tag).setName("a").setAttributes(new SelectorAttribute[]{
+                                            new SelectorAttribute().setName("target").setComparison(startsWith).setValue("reimage")
+                                    }))
+            )},
+
+            {"##div[style^=\"float: none; margin:10px \"]", new BlockSelector()
+            .setType(tag).setName("div").setAttributes(new SelectorAttribute[]{
+                    new SelectorAttribute().setName("style").setComparison(startsWith)
+                            .setValue("float: none; margin:10px ").setStyle(new NameAndValue[]{
+                            new NameAndValue("float", "none"),
+                            new NameAndValue("margin", "10px")
+                    })
+            })},
 
             {"#?#.cls-content ol:-abp-contains(Download Foo)", new BlockSelector()
                     .setAbpEnabled(true).setType(cls).setName("cls-content").setOperator(encloses).setNext(
-                            new BlockSelector().setType(tag).setName("ol").setAbp(
+                    new BlockSelector().setType(tag).setName("ol").setAbp(
                             new AbpClause().setType(AbpClauseType.contains).setContains(
                                     new AbpContains().setType(AbpContainsType.literal).setValue("Download Foo")
-                            )))}};
-
+                            )))}
+    };
     @Test public void testSelectorParsing () throws Exception { runTests(SELECTOR_TESTS); }
     @Test public void testAbpParsing () throws Exception { runTests(ABP_TESTS); }
+    @Test public void testOddParsing () throws Exception { runTests(ODD_TESTS); }
 
     private void runTests(Object[][] tests) throws SelectorParseError {
         for (Object[] test : tests) {
             final String spec = test[0].toString();
             final BlockSelector sel = BlockSelector.buildSelector(spec);
             assertEquals("BlockSelector object is incorrect for spec: "+spec, test[1], sel);
+        }
+    }
+
+    @Test public void testComplexList () throws Exception {
+        try {
+            final BlockListSource source = new BlockListSource() {
+                @Override public InputStream getUrlInputStream() { return loadResourceAsStream("AntiMalwareABP.txt"); }
+            }.download();
+            assertEquals("error parsing some lines", 0, source.getBlockList().getWhitelist().size());
+            assertEquals("error parsing some lines", 553, source.getBlockList().getBlacklist().size());
+            System.out.println("saved lists!");
+        } catch (Exception e) {
+            fail("testComplexList: badness: "+shortError(e));
         }
     }
 

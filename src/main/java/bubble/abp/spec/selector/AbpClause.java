@@ -2,12 +2,13 @@ package bubble.abp.spec.selector;
 
 import lombok.*;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.collection.ArrayUtil;
 
 import static bubble.abp.spec.selector.SelectorParseError.parseError;
 
 @NoArgsConstructor @Accessors(chain=true)
-@EqualsAndHashCode @ToString
+@EqualsAndHashCode @ToString @Slf4j
 public class AbpClause {
 
     @Getter @Setter private AbpClauseType type;
@@ -38,8 +39,11 @@ public class AbpClause {
                 return abp.setProperties(props);
 
             case has:
-                if (!spec.startsWith(">")) throw parseError("expected abp-has argument to begin with > :"+spec);
-                spec = spec.substring(1);
+                if (!spec.startsWith(">")) {
+                    log.warn("expected abp-has argument to begin with > :"+spec);
+                } else {
+                    spec = spec.substring(1);
+                }
                 return abp.setSelector(BlockSelector.buildNextSelector(spec.trim()));
         }
         throw parseError("invalid abp clause type: "+spec);
