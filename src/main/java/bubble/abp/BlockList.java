@@ -51,8 +51,6 @@ public class BlockList {
             if (block.matches(fqdn, path, contentType)) {
                 if (!block.hasSelector()) return BlockDecision.BLOCK;
                 decision.add(block);
-            } else if (block.hasSelector()) {
-                decision.add(block);
             }
         }
         return decision;
