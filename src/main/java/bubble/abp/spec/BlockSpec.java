@@ -1,5 +1,6 @@
 package bubble.abp.spec;
 
+import bubble.abp.spec.selector.BlockSelector;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.cobbzilla.util.string.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
 
+import static bubble.abp.spec.selector.BlockSelector.buildSelector;
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.http.HttpContentTypes.contentType;
 
@@ -29,10 +31,10 @@ public class BlockSpec {
 
     @Getter private List<String> typeExclusions;
 
-    @Getter private String selector;
-    public boolean hasSelector() { return !empty(selector); }
+    @Getter private BlockSelector selector;
+    public boolean hasSelector() { return selector != null; }
 
-    public BlockSpec(String line, BlockSpecTarget target, List<String> options, String selector) {
+    public BlockSpec(String line, BlockSpecTarget target, List<String> options, BlockSelector selector) {
         this.line = line;
         this.target = target;
         this.selector = selector;
@@ -116,7 +118,7 @@ public class BlockSpec {
             }
         }
         final List<BlockSpec> specs = new ArrayList<>();
-        for (BlockSpecTarget target : targets) specs.add(new BlockSpec(line, target, options, selector));
+        for (BlockSpecTarget target : targets) specs.add(new BlockSpec(line, target, options, buildSelector(selector)));
         return specs;
     }
 
