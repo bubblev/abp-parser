@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.http.HttpSchemes.stripScheme;
+import static org.cobbzilla.util.json.JsonUtil.jsonQuoteRegex;
 
 @NoArgsConstructor @Accessors(chain=true) @EqualsAndHashCode(of={"domainRegex", "regex"})
 public class BlockSpecTarget {
@@ -59,7 +60,7 @@ public class BlockSpecTarget {
         } else if (data.startsWith("|") && data.endsWith("|")) {
             // exact match
             final String verbatimMatch = stripScheme(data.substring(1, data.length() - 1));
-            regex = "^" + Pattern.quote(verbatimMatch) + "$";
+            regex = "^" + jsonQuoteRegex(verbatimMatch) + "$";
 
         } else if (data.startsWith("/")) {
             // path match, possibly regex
@@ -72,14 +73,14 @@ public class BlockSpecTarget {
             } else if (data.contains("*")) {
                 regex = parseWildcardMatch(data);
             } else {
-                regex = "^" + Pattern.quote(data) + ".*";
+                regex = "^" + jsonQuoteRegex(data) + ".*";
             }
 
         } else {
             if (data.contains("*")) {
                 regex = parseWildcardMatch(data);
             } else {
-                regex = "^" + Pattern.quote(data) + ".*";
+                regex = "^" + jsonQuoteRegex(data) + ".*";
             }
         }
         return new BlockSpecTarget().setDomainRegex(domainRegex).setRegex(regex);
@@ -96,7 +97,7 @@ public class BlockSpecTarget {
     }
 
     private static String matchDomainOrAnySubdomains(String domain) {
-        return ".*?"+Pattern.quote(domain)+"$";
+        return ".*?"+jsonQuoteRegex(domain)+"$";
     }
 
 }

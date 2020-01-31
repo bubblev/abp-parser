@@ -4,9 +4,9 @@ import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.util.StringTokenizer;
-import java.util.regex.Pattern;
 
 import static bubble.abp.spec.selector.SelectorParseError.parseError;
+import static org.cobbzilla.util.json.JsonUtil.jsonQuoteRegex;
 
 @NoArgsConstructor @Accessors(chain=true)
 @EqualsAndHashCode @ToString
@@ -30,7 +30,7 @@ public class AbpProperty {
                 if (tok.equals("*")) {
                     regex.append(".+?");
                 } else {
-                    regex.append(Pattern.quote(tok));
+                    regex.append(jsonQuoteRegex(tok));
                 }
             }
             return new AbpProperty()
