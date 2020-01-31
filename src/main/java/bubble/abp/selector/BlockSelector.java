@@ -1,10 +1,12 @@
 package bubble.abp.selector;
 
+import bubble.abp.BlockSpec;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.cobbzilla.util.collection.ArrayUtil;
 
-import java.util.StringTokenizer;
+import java.util.*;
 
 import static bubble.abp.selector.SelectorAttributeParseState.*;
 import static bubble.abp.selector.SelectorParseError.parseError;
@@ -18,7 +20,7 @@ public class BlockSelector {
     @Getter @Setter private String error;
 
     @Getter @Setter private SelectorType type;
-    @Getter @Setter private Boolean abpEnabled;
+    @JsonIgnore @Getter @Setter private Boolean abpEnabled;
     public boolean abpEnabled() { return abpEnabled != null && abpEnabled; }
 
     @Getter private String name;
@@ -190,6 +192,16 @@ public class BlockSelector {
             sel.setNext(buildNextSelector(spec));
         }
         return sel;
+    }
+
+    public static Set<BlockSelector> getSelectors(Collection<BlockSpec> specs) {
+        final Set<BlockSelector> selectors = new HashSet<>();
+        if (!empty(specs)) {
+            for (BlockSpec spec : specs) {
+                if (spec.hasSelector()) selectors.add(spec.getSelector());
+            }
+        }
+        return selectors;
     }
 
 }

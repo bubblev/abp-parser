@@ -1,5 +1,7 @@
 package bubble.abp;
 
+import bubble.abp.selector.BlockSelector;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -55,5 +57,7 @@ public class BlockList {
         }
         return decision;
     }
+
+    @JsonIgnore public Set<BlockSelector> getBlacklistSelectors() { return BlockSelector.getSelectors(blacklist); }
 
 }

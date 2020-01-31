@@ -15,7 +15,7 @@ public class AbpContains {
         if (spec.startsWith("/") && (spec.endsWith("/") || spec.endsWith("/i"))) {
             return new AbpContains()
                     .setValue(spec.substring(1, spec.length()-1))
-                    .setType(spec.endsWith("/i") ? AbpContainsType.case_insensitive_regex : AbpContainsType.regex);
+                    .setType(AbpContainsType.regex);
         }
         if (spec.contains("[") && spec.contains("]")) {
             return new AbpContains()

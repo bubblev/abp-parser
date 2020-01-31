@@ -1,5 +1,7 @@
 package bubble.abp;
 
+import bubble.abp.selector.BlockSelector;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -7,6 +9,7 @@ import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 
@@ -28,5 +31,7 @@ public class BlockDecision {
         }
         return this;
     }
+
+    @JsonIgnore public Set<BlockSelector> getSelectors() { return BlockSelector.getSelectors(specs); }
 
 }
