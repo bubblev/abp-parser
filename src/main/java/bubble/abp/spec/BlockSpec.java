@@ -1,6 +1,7 @@
 package bubble.abp.spec;
 
 import bubble.abp.spec.selector.BlockSelector;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ public class BlockSpec {
     public static final String OPT_IMAGE = "image";
     public static final String OPT_STYLESHEET = "stylesheet";
 
-    @Getter private String line;
+    @JsonIgnore @Getter private String line;
     @Getter private BlockSpecTarget target;
 
     @Getter private List<String> domainExclusions;
