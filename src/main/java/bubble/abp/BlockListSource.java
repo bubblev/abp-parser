@@ -39,20 +39,26 @@ public class BlockListSource {
                     format = line.substring(1, line.length()-1);
                 }
                 firstLine = false;
-                if (line.startsWith("!")) continue;
-                try {
-                    if (line.startsWith("@@")) {
-                        blockList.addToWhitelist(BlockSpec.parse(line));
-                    } else {
-                        blockList.addToBlacklist(BlockSpec.parse(line));
-                    }
-                } catch (Exception e) {
-                    log.warn("download("+url+"): error parsing line (skipping due to "+shortError(e)+"): " + line);
-                }
+                addLine(line);
             }
         }
         lastDownloaded = now();
         return this;
     }
+
+    public void addLine(String line) {
+        if (line.startsWith("!")) return;
+        try {
+            if (line.startsWith("@@")) {
+                blockList.addToWhitelist(BlockSpec.parse(line));
+            } else {
+                blockList.addToBlacklist(BlockSpec.parse(line));
+            }
+        } catch (Exception e) {
+            log.warn("download("+url+"): error parsing line (skipping due to "+shortError(e)+"): " + line);
+        }
+    }
+
+    public void addEntries(String[] entries) { for (String entry : entries) addLine(entry); }
 
 }
