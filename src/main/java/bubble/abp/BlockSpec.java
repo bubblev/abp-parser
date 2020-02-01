@@ -24,10 +24,11 @@ public class BlockSpec {
     public static final String OPT_STYLESHEET = "stylesheet";
 
     @JsonIgnore @Getter private String line;
-    @Getter private BlockSpecTarget target;
+    @Getter private BlockTarget target;
 
     @Getter private List<String> domainExclusions;
     @Getter private List<String> typeMatches;
+
     public boolean hasTypeMatches () { return !empty(typeMatches); }
 
     @Getter private List<String> typeExclusions;
@@ -35,8 +36,9 @@ public class BlockSpec {
 
     @Getter private BlockSelector selector;
     public boolean hasSelector() { return selector != null; }
+    public boolean hasNoSelector() { return !hasSelector(); }
 
-    public BlockSpec(String line, BlockSpecTarget target, List<String> options, BlockSelector selector) {
+    public BlockSpec(String line, BlockTarget target, List<String> options, BlockSelector selector) {
         this.line = line;
         this.target = target;
         this.selector = selector;
@@ -93,36 +95,36 @@ public class BlockSpec {
         // sanity check that selectorStartPos > optionStartPos -- $ may occur AFTER ## if the selector contains a regex
         if (selectorStartPos != -1 && optionStartPos > selectorStartPos) optionStartPos = -1;
 
-        final List<BlockSpecTarget> targets;
+        final List<BlockTarget> targets;
         final List<String> options;
         final String selector;
         if (optionStartPos == -1) {
             if (selectorStartPos == -1) {
                 // no options, no selector, entire line is the target
-                targets = BlockSpecTarget.parseBareLine(line);
+                targets = BlockTarget.parseBareLine(line);
                 options = null;
                 selector = null;
             } else {
                 // no options, but selector present. split into target + selector
-                targets = BlockSpecTarget.parse(line.substring(0, selectorStartPos));
+                targets = BlockTarget.parse(line.substring(0, selectorStartPos));
                 options = null;
                 selector = line.substring(selectorStartPos);
             }
         } else {
             if (selectorStartPos == -1) {
                 // no selector, split into target + options
-                targets = BlockSpecTarget.parse(line.substring(0, optionStartPos));
+                targets = BlockTarget.parse(line.substring(0, optionStartPos));
                 options = StringUtil.splitAndTrim(line.substring(optionStartPos+1), ",");
                 selector = null;
             } else {
                 // all 3 elements present
-                targets = BlockSpecTarget.parse(line.substring(0, optionStartPos));
+                targets = BlockTarget.parse(line.substring(0, optionStartPos));
                 options = StringUtil.splitAndTrim(line.substring(optionStartPos + 1, selectorStartPos), ",");
                 selector = line.substring(selectorStartPos);
             }
         }
         final List<BlockSpec> specs = new ArrayList<>();
-        for (BlockSpecTarget target : targets) specs.add(new BlockSpec(line, target, options, buildSelector(selector)));
+        for (BlockTarget target : targets) specs.add(new BlockSpec(line, target, options, buildSelector(selector)));
         return specs;
     }
 

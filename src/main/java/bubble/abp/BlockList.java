@@ -1,13 +1,15 @@
 package bubble.abp;
 
-import bubble.abp.selector.BlockSelector;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor @Accessors(chain=true) @Slf4j
 public class BlockList {
@@ -58,6 +60,12 @@ public class BlockList {
         return decision;
     }
 
-    @JsonIgnore public Set<BlockSelector> getBlacklistSelectors() { return BlockSelector.getSelectors(blacklist); }
+    @JsonIgnore public Set<BlockSpec> getBlacklistDomains() {
+        return blacklist.stream().filter(BlockSpec::hasNoSelector).collect(Collectors.toSet());
+    }
+
+    @JsonIgnore public Set<BlockSpec> getWhitelistDomains() {
+        return whitelist.stream().filter(BlockSpec::hasNoSelector).collect(Collectors.toSet());
+    }
 
 }

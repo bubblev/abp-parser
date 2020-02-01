@@ -1,5 +1,6 @@
 package bubble.abp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,35 +17,35 @@ import static org.cobbzilla.util.http.HttpSchemes.stripScheme;
 import static org.cobbzilla.util.json.JsonUtil.jsonQuoteRegex;
 
 @NoArgsConstructor @Accessors(chain=true) @EqualsAndHashCode(of={"domainRegex", "regex"})
-public class BlockSpecTarget {
+public class BlockTarget {
 
     @Getter @Setter private String domainRegex;
     public boolean hasDomainRegex() { return !empty(domainRegex); }
-    @Getter(lazy=true) private final Pattern domainPattern = hasDomainRegex() ? Pattern.compile(getDomainRegex()) : null;
+    @JsonIgnore @Getter(lazy=true) private final Pattern domainPattern = hasDomainRegex() ? Pattern.compile(getDomainRegex()) : null;
 
     @Getter @Setter private String regex;
     public boolean hasRegex() { return !empty(regex); }
-    @Getter(lazy=true) private final Pattern regexPattern = hasRegex() ? Pattern.compile(getRegex()) : null;
+    @JsonIgnore @Getter(lazy=true) private final Pattern regexPattern = hasRegex() ? Pattern.compile(getRegex()) : null;
 
-    public static List<BlockSpecTarget> parse(String data) {
-        final List<BlockSpecTarget> targets = new ArrayList<>();
+    public static List<BlockTarget> parse(String data) {
+        final List<BlockTarget> targets = new ArrayList<>();
         for (String part : data.split(",")) {
             targets.add(parseTarget(part));
         }
         return targets;
     }
 
-    public static List<BlockSpecTarget> parseBareLine(String data) {
+    public static List<BlockTarget> parseBareLine(String data) {
         if (data.contains("|") || data.contains("/") || data.contains("^")) return parse(data);
 
-        final List<BlockSpecTarget> targets = new ArrayList<>();
+        final List<BlockTarget> targets = new ArrayList<>();
         for (String part : data.split(",")) {
-            targets.add(new BlockSpecTarget().setDomainRegex(matchDomainOrAnySubdomains(part)));
+            targets.add(new BlockTarget().setDomainRegex(matchDomainOrAnySubdomains(part)));
         }
         return targets;
     }
 
-    private static BlockSpecTarget parseTarget(String data) {
+    private static BlockTarget parseTarget(String data) {
         String domainRegex = null;
         String regex = null;
         if (data.startsWith("||")) {
@@ -83,7 +84,7 @@ public class BlockSpecTarget {
                 regex = "^" + jsonQuoteRegex(data) + ".*";
             }
         }
-        return new BlockSpecTarget().setDomainRegex(domainRegex).setRegex(regex);
+        return new BlockTarget().setDomainRegex(domainRegex).setRegex(regex);
     }
 
     private static String parseWildcardMatch(String data) {
