@@ -14,10 +14,12 @@ import java.io.InputStreamReader;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.*;
 import static org.cobbzilla.util.daemon.ZillaRuntime.now;
+import static org.cobbzilla.util.io.FileUtil.basename;
 
 @NoArgsConstructor @Accessors(chain=true) @Slf4j
 public class BlockListSource {
 
+    public static final String INCLUDE_PREFIX = "!#include ";
     @Getter @Setter private String url;
     @Getter @Setter private String format;
 
@@ -26,7 +28,8 @@ public class BlockListSource {
 
     @Getter @Setter private BlockList blockList = new BlockList();
 
-    public InputStream getUrlInputStream() throws IOException { return HttpUtil.get(url); }
+    public InputStream getUrlInputStream() throws IOException { return getUrlInputStream(url); }
+    public static InputStream getUrlInputStream(String url) throws IOException { return HttpUtil.get(url); }
 
     public BlockListSource download() throws IOException {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(getUrlInputStream()))) {
@@ -39,15 +42,32 @@ public class BlockListSource {
                     format = line.substring(1, line.length()-1);
                 }
                 firstLine = false;
-                addLine(line);
+                addLine(url, line);
             }
         }
         lastDownloaded = now();
         return this;
     }
 
-    public void addLine(String line) {
-        if (line.startsWith("!")) return;
+    public void addLine(String url, String line) throws IOException {
+        if (line.startsWith(INCLUDE_PREFIX) && !empty(url)) {
+            final String includePath = line.substring(INCLUDE_PREFIX.length()).trim();
+            final String base = basename(url);
+            final String urlPrefix = url.substring(0, url.length() - base.length());
+            final String includeUrl = urlPrefix + includePath;
+            try (BufferedReader r = new BufferedReader(new InputStreamReader(getUrlInputStream(includeUrl)))) {
+                String includeLine;
+                while ( (includeLine = r.readLine()) != null ) {
+                    addLine(includeUrl, includeLine);
+                }
+            } catch (Exception e) {
+                throw new IOException("addLine: error including path: "+includeUrl+": "+shortError(e));
+            }
+
+        } else if (line.startsWith("!")) {
+            // comment, nothing to add
+            return;
+        }
         try {
             if (line.startsWith("@@")) {
                 blockList.addToWhitelist(BlockSpec.parse(line));
@@ -59,6 +79,6 @@ public class BlockListSource {
         }
     }
 
-    public void addEntries(String[] entries) { for (String entry : entries) addLine(entry); }
+    public void addEntries(String[] entries) throws IOException { for (String entry : entries) addLine(null, entry); }
 
 }
