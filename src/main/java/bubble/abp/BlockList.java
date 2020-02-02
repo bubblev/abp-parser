@@ -42,11 +42,19 @@ public class BlockList {
         }
     }
 
-    public BlockDecision getDecision(String fqdn, String path) {
-        return getDecision(fqdn, path, null);
+    public BlockDecision getDecision(String fqdn, String path) { return getDecision(fqdn, path, null, false); }
+
+    public BlockDecision getNonPrimaryDecision(String fqdn, String path) { return getDecision(fqdn, path, null, false); }
+    public BlockDecision getPrimaryDecision(String fqdn, String path) { return getDecision(fqdn, path, null, true   ); }
+
+    public BlockDecision getNonPrimaryDecision(String fqdn, String path, String contentType) { return getDecision(fqdn, path, contentType, false); }
+    public BlockDecision getPrimaryDecision(String fqdn, String path, String contentType) { return getDecision(fqdn, path, contentType, true); }
+
+    public BlockDecision getDecision(String fqdn, String path, boolean primary) {
+        return getDecision(fqdn, path, null, primary);
     }
 
-    public BlockDecision getDecision(String fqdn, String path, String contentType) {
+    public BlockDecision getDecision(String fqdn, String path, String contentType, boolean primary) {
         for (BlockSpec allow : whitelist) {
             if (allow.matches(fqdn, path, contentType)) return BlockDecision.ALLOW;
         }
@@ -54,6 +62,9 @@ public class BlockList {
         for (BlockSpec block : blacklist) {
             if (block.matches(fqdn, path, contentType)) {
                 if (!block.hasSelector()) return BlockDecision.BLOCK;
+                decision.add(block);
+
+            } else if (!primary && block.hasSelector()) {
                 decision.add(block);
             }
         }
