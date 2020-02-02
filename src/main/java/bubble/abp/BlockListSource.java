@@ -20,7 +20,17 @@ import static org.cobbzilla.util.io.FileUtil.basename;
 public class BlockListSource {
 
     public static final String INCLUDE_PREFIX = "!#include ";
+    public static final String TITLE_PREFIX = "!Title:";
+    public static final String DESCRIPTION_PREFIX = "!Description:";
+
     @Getter @Setter private String url;
+
+    @Getter @Setter private String title;
+    public boolean hasTitle () { return !empty(title); }
+
+    @Getter @Setter private String description;
+    public boolean hasDescription () { return !empty(description); }
+
     @Getter @Setter private String format;
 
     @Getter @Setter private Long lastDownloaded;
@@ -35,21 +45,26 @@ public class BlockListSource {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(getUrlInputStream()))) {
             String line;
             boolean firstLine = true;
+            int lineNumber = 1;
             while ( (line = r.readLine()) != null ) {
-                if (empty(line)) continue;
+                if (empty(line)) {
+                    lineNumber++;
+                    continue;
+                }
                 line = line.trim();
                 if (firstLine && line.startsWith("[") && line.endsWith("]")) {
                     format = line.substring(1, line.length()-1);
                 }
                 firstLine = false;
-                addLine(url, line);
+                addLine(url, lineNumber, line);
+                lineNumber++;
             }
         }
         lastDownloaded = now();
         return this;
     }
 
-    public void addLine(String url, String line) throws IOException {
+    private void addLine(String url, int lineNumber, String line) throws IOException {
         if (line.startsWith(INCLUDE_PREFIX) && !empty(url)) {
             final String includePath = line.substring(INCLUDE_PREFIX.length()).trim();
             final String base = basename(url);
@@ -57,12 +72,19 @@ public class BlockListSource {
             final String includeUrl = urlPrefix + includePath;
             try (BufferedReader r = new BufferedReader(new InputStreamReader(getUrlInputStream(includeUrl)))) {
                 String includeLine;
-                while ( (includeLine = r.readLine()) != null ) {
-                    addLine(includeUrl, includeLine);
+                int includeLineNumber = 1;
+                while ((includeLine = r.readLine()) != null) {
+                    addLine(includeUrl, includeLineNumber, includeLine);
+                    includeLineNumber++;
                 }
             } catch (Exception e) {
-                throw new IOException("addLine: error including path: "+includeUrl+": "+shortError(e));
+                throw new IOException("addLine: error including path: " + includeUrl + ": " + shortError(e));
             }
+        } else if (lineNumber < 20 && empty(title) && line.replace(" ", "").startsWith(TITLE_PREFIX)) {
+            title = line.substring(line.indexOf(":")+1).trim();
+
+        } else if (lineNumber < 20 && empty(description) && line.replace(" ", "").startsWith(DESCRIPTION_PREFIX)) {
+            description = line.substring(line.indexOf(":")+1).trim();
 
         } else if (line.startsWith("!")) {
             // comment, nothing to add
@@ -79,6 +101,6 @@ public class BlockListSource {
         }
     }
 
-    public void addEntries(String[] entries) throws IOException { for (String entry : entries) addLine(null, entry); }
+    public void addEntries(String[] entries) throws IOException { for (String entry : entries) addLine(null, 1, entry); }
 
 }
