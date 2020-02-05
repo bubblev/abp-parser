@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.cobbzilla.util.http.HttpContentTypes.isHtml;
+
 @NoArgsConstructor @Accessors(chain=true) @Slf4j
 public class BlockList {
 
@@ -64,7 +66,7 @@ public class BlockList {
                 if (!block.hasSelector()) return BlockDecision.BLOCK;
                 decision.add(block);
 
-            } else if (!primary && block.hasSelector()) {
+            } else if (block.hasSelector() && (!primary || isHtml(contentType))) {
                 decision.add(block);
             }
         }
