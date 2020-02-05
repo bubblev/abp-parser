@@ -13,7 +13,6 @@ import java.util.List;
 
 import static bubble.abp.selector.BlockSelector.buildSelector;
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
-import static org.cobbzilla.util.http.HttpContentTypes.contentType;
 
 @Slf4j @EqualsAndHashCode(of={"target", "domainExclusions", "typeMatches", "typeExclusions", "selector"})
 public class BlockSpec {
@@ -129,8 +128,6 @@ public class BlockSpec {
     }
 
     public boolean matches(String fqdn, String path, String contentType) {
-        if (contentType == null) contentType = contentType(contentType);
-
         if (target.hasDomainRegex() && target.getDomainPattern().matcher(fqdn).find()) {
             return checkDomainExclusionsAndType(fqdn, contentType);
 
@@ -152,36 +149,38 @@ public class BlockSpec {
                 if (domain.equals(fqdn)) return false;
             }
         }
-        if (typeExclusions != null) {
-            for (String type : typeExclusions) {
-                switch (type) {
-                    case OPT_SCRIPT:
-                        if (contentType.equals(HttpContentTypes.APPLICATION_JAVASCRIPT)) return false;
-                        break;
-                    case OPT_IMAGE:
-                        if (contentType.startsWith(HttpContentTypes.IMAGE_PREFIX)) return false;
-                        break;
-                    case OPT_STYLESHEET:
-                        if (contentType.equals(HttpContentTypes.TEXT_CSS)) return false;
-                        break;
+        if (!empty(contentType)) {
+            if (typeExclusions != null) {
+                for (String type : typeExclusions) {
+                    switch (type) {
+                        case OPT_SCRIPT:
+                            if (contentType.equals(HttpContentTypes.APPLICATION_JAVASCRIPT)) return false;
+                            break;
+                        case OPT_IMAGE:
+                            if (contentType.startsWith(HttpContentTypes.IMAGE_PREFIX)) return false;
+                            break;
+                        case OPT_STYLESHEET:
+                            if (contentType.equals(HttpContentTypes.TEXT_CSS)) return false;
+                            break;
+                    }
                 }
             }
-        }
-        if (typeMatches != null) {
-            for (String type : typeMatches) {
-                switch (type) {
-                    case OPT_SCRIPT:
-                        if (contentType.equals(HttpContentTypes.APPLICATION_JAVASCRIPT)) return true;
-                        break;
-                    case OPT_IMAGE:
-                        if (contentType.startsWith(HttpContentTypes.IMAGE_PREFIX)) return true;
-                        break;
-                    case OPT_STYLESHEET:
-                        if (contentType.equals(HttpContentTypes.TEXT_CSS)) return true;
-                        break;
+            if (typeMatches != null) {
+                for (String type : typeMatches) {
+                    switch (type) {
+                        case OPT_SCRIPT:
+                            if (contentType.equals(HttpContentTypes.APPLICATION_JAVASCRIPT)) return true;
+                            break;
+                        case OPT_IMAGE:
+                            if (contentType.startsWith(HttpContentTypes.IMAGE_PREFIX)) return true;
+                            break;
+                        case OPT_STYLESHEET:
+                            if (contentType.equals(HttpContentTypes.TEXT_CSS)) return true;
+                            break;
+                    }
                 }
+                return false;
             }
-            return false;
         }
         return true;
     }
