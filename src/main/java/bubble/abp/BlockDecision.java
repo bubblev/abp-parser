@@ -34,4 +34,7 @@ public class BlockDecision {
 
     @JsonIgnore public Set<BlockSelector> getSelectors() { return BlockSelector.getSelectors(specs); }
 
+    @Override public String toString () {
+        return "BlockDecision{"+decisionType+(hasSpecs() ? ", "+specs.size()+" specs" : "")+"}";
+    }
 }
