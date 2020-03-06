@@ -170,7 +170,7 @@ public class SelectorTest {
     @Test public void testComplexList () throws Exception {
         try {
             final BlockListSource source = new BlockListSource() {
-                @Override public InputStream getUrlInputStream() { return loadResourceAsStream("AntiMalwareABP.txt"); }
+                @Override public InputStream urlInputStream() { return loadResourceAsStream("AntiMalwareABP.txt"); }
             }.download();
             assertEquals("error parsing some lines", 0, source.getBlockList().getWhitelist().size());
             assertEquals("error parsing some lines", 553, source.getBlockList().getBlacklist().size());

@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.cobbzilla.util.http.HttpUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,7 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.*;
-import static org.cobbzilla.util.daemon.ZillaRuntime.now;
+import static org.cobbzilla.util.http.HttpUtil.getUrlInputStream;
 import static org.cobbzilla.util.io.FileUtil.basename;
 
 @NoArgsConstructor @Accessors(chain=true) @Slf4j
@@ -38,11 +37,10 @@ public class BlockListSource {
 
     @Getter @Setter private BlockList blockList = new BlockList();
 
-    public InputStream getUrlInputStream() throws IOException { return getUrlInputStream(url); }
-    public static InputStream getUrlInputStream(String url) throws IOException { return HttpUtil.get(url); }
+    public InputStream urlInputStream() throws IOException { return getUrlInputStream(url); }
 
     public BlockListSource download() throws IOException {
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(getUrlInputStream()))) {
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(urlInputStream()))) {
             String line;
             boolean firstLine = true;
             int lineNumber = 1;
