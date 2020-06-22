@@ -11,13 +11,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.http.HttpSchemes.stripScheme;
 import static org.cobbzilla.util.json.JsonUtil.jsonQuoteRegex;
+import static org.cobbzilla.util.string.ValidationRegexes.HOST_PATTERN;
 
 @NoArgsConstructor @Accessors(chain=true) @EqualsAndHashCode(of={"domainRegex", "regex"})
 public class BlockTarget {
+
+    @Getter @Setter private String fullDomainBlock;
+    public boolean hasFullDomainBlock () { return fullDomainBlock != null; }
+
+    @Getter @Setter private String partialDomainBlock;
+    public boolean hasPartialDomainBlock () { return partialDomainBlock != null; }
 
     @Getter @Setter private String domainRegex;
     public boolean hasDomainRegex() { return !empty(domainRegex); }
@@ -27,6 +35,10 @@ public class BlockTarget {
     public boolean hasRegex() { return !empty(regex); }
     @JsonIgnore @Getter(lazy=true) private final Pattern regexPattern = hasRegex() ? Pattern.compile(getRegex()) : null;
 
+    public static String hostOrNull(String hostPart) {
+        return HOST_PATTERN.matcher(hostPart).matches() ? hostPart : null;
+    }
+
     public static List<BlockTarget> parse(String data) {
         final List<BlockTarget> targets = new ArrayList<>();
         for (String part : data.split(",")) {
@@ -35,12 +47,21 @@ public class BlockTarget {
         return targets;
     }
 
-    public static List<BlockTarget> parseBareLine(String data) {
-        if (data.contains("|") || data.contains("/") || data.contains("^")) return parse(data);
+    public static List<BlockTarget> parseBareLine(final String data) {
+        if (data.contains("/")) {
+            final String hostPart = data.substring(0, data.indexOf("/"));
+            return data.startsWith("/") ? parse(data) : parse(data).stream()
+                    .map(t -> t.setPartialDomainBlock(hostOrNull(hostPart)))
+                    .collect(Collectors.toList());
+        } else if (data.contains("|") || data.contains("^")) {
+            return parse(data);
+        }
 
         final List<BlockTarget> targets = new ArrayList<>();
         for (String part : data.split(",")) {
-            targets.add(new BlockTarget().setDomainRegex(matchDomainOrAnySubdomains(part)));
+            targets.add(new BlockTarget()
+                    .setDomainRegex(matchDomainOrAnySubdomains(part))
+                    .setFullDomainBlock(hostOrNull(part)));
         }
         return targets;
     }
@@ -48,16 +69,19 @@ public class BlockTarget {
     private static BlockTarget parseTarget(String data) {
         String domainRegex = null;
         String regex = null;
+        String fullBlock = null;
         if (data.startsWith("||")) {
             final int caretPos = data.indexOf("^");
+            final String domain;
             if (caretPos != -1) {
                 // domain match
-                final String domain = data.substring(2, caretPos);
-                domainRegex = matchDomainOrAnySubdomains(domain);
+                domain = data.substring(2, caretPos);
             } else {
-                final String domain = data.substring(2);
-                domainRegex = matchDomainOrAnySubdomains(domain);
+                domain = data.substring(2);
             }
+            domainRegex = matchDomainOrAnySubdomains(domain);
+            fullBlock = hostOrNull(domain);
+
         } else if (data.startsWith("|") && data.endsWith("|")) {
             // exact match
             final String verbatimMatch = stripScheme(data.substring(1, data.length() - 1));
@@ -84,7 +108,10 @@ public class BlockTarget {
                 regex = "^" + jsonQuoteRegex(data) + ".*";
             }
         }
-        return new BlockTarget().setDomainRegex(domainRegex).setRegex(regex);
+        return new BlockTarget()
+                .setDomainRegex(domainRegex)
+                .setRegex(regex)
+                .setFullDomainBlock(regex == null ? fullBlock : null);
     }
 
     private static String parseWildcardMatch(String data) {
