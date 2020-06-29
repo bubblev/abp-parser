@@ -73,6 +73,20 @@ public class BlockList {
         return decision;
     }
 
+    public BlockDecision getFqdnDecision(String fqdn) {
+        for (BlockSpec allow : whitelist) {
+            if (allow.matchesFqdn(fqdn)) return BlockDecision.ALLOW;
+        }
+        final BlockDecision decision = new BlockDecision();
+        for (BlockSpec block : blacklist) {
+            if (block.matchesFqdn(fqdn)) {
+                if (!block.hasSelector()) return BlockDecision.BLOCK;
+                decision.add(block);
+            }
+        }
+        return decision;
+    }
+
     @JsonIgnore public Set<BlockSpec> getBlacklistDomains() {
         return blacklist.stream().filter(BlockSpec::hasNoSelector).collect(Collectors.toSet());
     }

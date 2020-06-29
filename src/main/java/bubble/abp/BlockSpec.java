@@ -143,6 +143,18 @@ public class BlockSpec {
         return false;
     }
 
+    public boolean matchesFqdn(String fqdn) {
+        if (target.hasDomainRegex() && target.getDomainPattern().matcher(fqdn).find()) {
+            return checkDomainExclusionsAndType(fqdn, null);
+
+        } else if (target.hasRegex()) {
+            if (target.getRegexPattern().matcher(fqdn).find()) {
+                return checkDomainExclusionsAndType(fqdn, null);
+            };
+        }
+        return false;
+    }
+
     public boolean checkDomainExclusionsAndType(String fqdn, String contentType) {
         if (domainExclusions != null) {
             for (String domain : domainExclusions) {
