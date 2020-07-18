@@ -76,7 +76,7 @@ public class BlockSpec {
                 if (domainExclusions == null) domainExclusions = new ArrayList<>();
                 domainExclusions.add(domainOption.substring(1));
             } else {
-                log.warn("ignoring included domain: "+domainOption);
+                log.debug("ignoring included domain: "+domainOption);
             }
         }
     }
