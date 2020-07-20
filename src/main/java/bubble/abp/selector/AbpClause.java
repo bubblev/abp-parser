@@ -40,7 +40,7 @@ public class AbpClause {
 
             case has:
                 if (!spec.startsWith(">")) {
-                    log.warn("expected abp-has argument to begin with > :"+spec);
+                    log.info("expected abp-has argument to begin with > :"+spec);
                 } else {
                     spec = spec.substring(1);
                 }
