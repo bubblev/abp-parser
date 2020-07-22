@@ -160,22 +160,28 @@ public class BlockListTest {
     }
 
     public static final String[][] CONDITIONAL_SPECS = {
-            {"~foo.bar.com~[\"referer ne bar.com\"]", "foo.com", "foo.com", ALLOW},
-            {"~foo.bar.com~[\"referer ne bar.com\"]", "bar.com", "bar.com", ALLOW},
-            {"~foo.bar.com~[\"referer ne bar.com\"]", "foo.bar.com", "bar.com", ALLOW},
-            {"~foo.bar.com~[\"referer ne bar.com\"]", "foo.bar.com", "foo.com", BLOCK},
-            {"~foo.bar.com~[\"referer ne bar.com\"]", "bar.com", "foo.com", ALLOW}
-            // todo: add more tests for other operators, regex_find vs regex_exact, multiple conditions, etc
+// rule                                                                         // fqdn        // referer      // expect
+{"~foo.bar.com~[\"referer_host ne bar.com\"]",                                  "foo.com",     "foo.com",      ALLOW},
+{"~foo.bar.com~[\"referer_host ne bar.com\"]",                                  "bar.com",     "bar.com",      ALLOW},
+{"~foo.bar.com~[\"referer_host ne bar.com\"]",                                  "foo.bar.com", "bar.com",      ALLOW},
+{"~foo.bar.com~[\"referer_host ne bar.com\"]",                                  "foo.bar.com", "foo.com",      BLOCK},
+{"~foo.bar.com~[\"referer_host ne bar.com\"]",                                  "bar.com",     "foo.com",      ALLOW},
+
+{"~foo.bar.com~[\"referer_host ne bar.com\", \"referer_host ne www.bar.com\"]", "foo.bar.com", "bar.com",      ALLOW},
+{"~foo.bar.com~[\"referer_host ne bar.com\", \"referer_host ne www.bar.com\"]", "foo.bar.com", "www.bar.com",  ALLOW},
+{"~foo.bar.com~[\"referer_host ne bar.com\", \"referer_host ne www.bar.com\"]", "foo.bar.com", "baz.com",      BLOCK}
+// todo: add more tests for other operators, regex_find vs regex_exact, more conditions, etc
     };
 
     @Test public void testConditionalMatches () throws Exception {
-        final BlockList blockList = new BlockList();
         for (String[] test : CONDITIONAL_SPECS) {
-            blockList.addToBlacklist(BlockSpec.parse(test[0]));
+            final BlockList blockList = new BlockList();
+            final String line = test[0];
+            blockList.addToBlacklist(BlockSpec.parse(line));
             final BlockDecisionType expected = BlockDecisionType.fromString(test[3]);
             final String fqdn = test[1];
             final String referer = test[2];
-            assertEquals("expected "+expected+" for test: fqdn="+fqdn+", referer="+referer,
+            assertEquals("expected "+expected+" for test: fqdn="+fqdn+", referer="+referer+" for line: "+line,
                     expected,
                     blockList.getDecision(fqdn, "/", null, referer, true).getDecisionType());
         }

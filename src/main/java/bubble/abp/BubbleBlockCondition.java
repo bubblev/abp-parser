@@ -7,6 +7,8 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.cobbzilla.util.daemon.ZillaRuntime.shortError;
+import static org.cobbzilla.util.http.HttpSchemes.SCHEME_HTTP;
+import static org.cobbzilla.util.http.HttpSchemes.SCHEME_HTTPS;
 
 @NoArgsConstructor @Accessors(chain=true) @Slf4j
 public class BubbleBlockCondition {
@@ -44,13 +46,25 @@ public class BubbleBlockCondition {
 
     public boolean matches(String fqdn, String path, String contentType, String referer) {
         switch (field) {
-            case fqdn: return operation.matches(fqdn, value);
-            case path: return operation.matches(path, value);
-            case url: return operation.matches(fqdn + path, value);
+            case host:         return operation.matches(fqdn, value);
+            case path:         return operation.matches(path, value);
+            case url:          return operation.matches(fqdn + path, value);
             case content_type: return operation.matches(contentType, value);
-            case referer: return operation.matches(referer, value);
+            case referer_host: return operation.matches(toFqdn(referer), value);
+            case referer_url:  return operation.matches(referer, value);
             default: log.warn("matches: invalid field: "+field);
         }
         return false;
     }
+
+    private String toFqdn(String referer) {
+        if (referer.startsWith(SCHEME_HTTPS)) {
+            referer = referer.substring(SCHEME_HTTPS.length());
+        } else if (referer.startsWith(SCHEME_HTTP)) {
+            referer = referer.substring(SCHEME_HTTP.length());
+        }
+        final int slashPos = referer.indexOf("/");
+        return slashPos == -1 ? referer : referer.substring(0, slashPos);
+    }
+
 }

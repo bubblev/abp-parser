@@ -2,6 +2,7 @@ package bubble.abp;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.collection.ExpirationEvictionPolicy;
 import org.cobbzilla.util.collection.ExpirationMap;
 
@@ -9,7 +10,7 @@ import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
-@AllArgsConstructor
+@AllArgsConstructor @Slf4j
 public enum BubbleBlockConditionOperation {
 
     eq       (String::equalsIgnoreCase),
@@ -29,6 +30,10 @@ public enum BubbleBlockConditionOperation {
 
     @JsonCreator public static BubbleBlockConditionOperation fromString (String v) { return valueOf(v.toLowerCase()); }
 
-    public boolean matches(String input, String value) { return comparison.matches(input, value); }
+    public boolean matches(String input, String value) {
+        final boolean matches = comparison.matches(input, value);
+        if (log.isDebugEnabled()) log.debug("matches: "+input+" "+this+" "+value+" -> "+matches);
+        return matches;
+    }
 
 }
