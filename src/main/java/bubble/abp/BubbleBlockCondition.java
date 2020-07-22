@@ -45,6 +45,7 @@ public class BubbleBlockCondition {
     }
 
     public boolean matches(String fqdn, String path, String contentType, String referer) {
+        if (log.isDebugEnabled()) log.debug("matches(fqdn="+fqdn+", path="+path+", contentType="+contentType+", referer="+referer+") with field="+field+", operation="+operation);
         switch (field) {
             case host:         return operation.matches(fqdn, value);
             case path:         return operation.matches(path, value);
