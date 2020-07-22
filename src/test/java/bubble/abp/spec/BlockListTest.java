@@ -46,7 +46,7 @@ public class BlockListTest {
 
             // block images and scripts on example.com, but not foo.example.com or bar.example.com
             {"||example.com^$image,script,domain=~foo.example.com|~bar.example.com",
-                    "example.com",            "/some_path",      ALLOW},
+                    "example.com",            "/some_path",      BLOCK},
 
             // test image blocking
             {"||example.com^$image,script,domain=~foo.example.com|~bar.example.com",
@@ -157,5 +157,27 @@ public class BlockListTest {
         decision = blockList.getDecision("foo.example.com", "/some_path");
         assertEquals("expected filter decision", BlockDecisionType.filter, decision.getDecisionType());
         assertEquals("expected 2 filter specs", 2, decision.getSpecs().size());
+    }
+
+    public static final String[][] CONDITIONAL_SPECS = {
+            {"~foo.bar.com~[\"referer ne bar.com\"]", "foo.com", "foo.com", ALLOW},
+            {"~foo.bar.com~[\"referer ne bar.com\"]", "bar.com", "bar.com", ALLOW},
+            {"~foo.bar.com~[\"referer ne bar.com\"]", "foo.bar.com", "bar.com", ALLOW},
+            {"~foo.bar.com~[\"referer ne bar.com\"]", "foo.bar.com", "foo.com", BLOCK},
+            {"~foo.bar.com~[\"referer ne bar.com\"]", "bar.com", "foo.com", ALLOW},
+    };
+
+    @Test public void testConditionalMatches () throws Exception {
+        final BlockList blockList = new BlockList();
+        for (String[] test : CONDITIONAL_SPECS) {
+            blockList.addToBlacklist(BlockSpec.parse(test[0]));
+            final BlockDecisionType expected = BlockDecisionType.fromString(test[3]);
+            final String fqdn = test[1];
+            final String referer = test[2];
+            assertEquals("expected "+expected+" for test: fqdn="+fqdn+", referer="+referer,
+                    expected,
+                    blockList.getDecision(fqdn, "/", null, referer, true).getDecisionType());
+        }
+
     }
 }

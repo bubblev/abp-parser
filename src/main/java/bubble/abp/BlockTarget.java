@@ -13,8 +13,10 @@ import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static bubble.abp.BlockSpec.BUBBLE_BLOCK_SPEC_PREFIX;
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.http.HttpSchemes.stripScheme;
+import static org.cobbzilla.util.json.JsonUtil.json;
 import static org.cobbzilla.util.json.JsonUtil.jsonQuoteRegex;
 import static org.cobbzilla.util.string.ValidationRegexes.HOST_PATTERN;
 
@@ -35,8 +37,32 @@ public class BlockTarget {
     public boolean hasRegex() { return !empty(regex); }
     @JsonIgnore @Getter(lazy=true) private final Pattern regexPattern = hasRegex() ? Pattern.compile(getRegex()) : null;
 
+    @Getter @Setter private BubbleBlockCondition[] conditions;
+    public boolean hasConditions () { return !empty(conditions); }
+
+    public boolean conditionsMatch(String fqdn, String path, String contentType, String referer) {
+        if (!hasConditions()) return false;
+        if (!fqdn.equalsIgnoreCase(partialDomainBlock)) return false;
+        for (BubbleBlockCondition condition : conditions) {
+            if (!condition.matches(fqdn, path, contentType, referer)) return false;
+        }
+        return true;
+    }
+
     public static String hostOrNull(String hostPart) {
         return HOST_PATTERN.matcher(hostPart).matches() ? hostPart : null;
+    }
+
+    public static BlockTarget parseBubbleLine(String line) {
+        if (!line.startsWith(BUBBLE_BLOCK_SPEC_PREFIX)) throw new IllegalArgumentException("parseBubbleLine: invalid line, expected "+BUBBLE_BLOCK_SPEC_PREFIX+" as first char: "+line);
+        line = line.substring(BUBBLE_BLOCK_SPEC_PREFIX.length());
+        final int conditionsStart = line.indexOf(BUBBLE_BLOCK_SPEC_PREFIX);
+        if (conditionsStart == -1) throw new IllegalArgumentException("parseBubbleLine: invalid line, expected "+BUBBLE_BLOCK_SPEC_PREFIX+" to begin conditions: "+line);
+
+        final BlockTarget target = new BlockTarget();
+        target.setPartialDomainBlock(line.substring(0, conditionsStart));
+        target.setConditions(BubbleBlockCondition.parse(json(line.substring(conditionsStart+1), String[].class)));
+        return target;
     }
 
     public static List<BlockTarget> parse(String data) {

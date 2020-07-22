@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.util.collection.SingletonList;
 import org.cobbzilla.util.http.HttpContentTypes;
 import org.cobbzilla.util.string.StringUtil;
 
@@ -17,13 +18,15 @@ import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 @Slf4j @EqualsAndHashCode(of={"target", "domainExclusions", "typeMatches", "typeExclusions", "selector"})
 public class BlockSpec {
 
+    public static final String BUBBLE_BLOCK_SPEC_PREFIX = "~";
+
     public static final String OPT_DOMAIN_PREFIX = "domain=";
     public static final String OPT_SCRIPT = "script";
     public static final String OPT_IMAGE = "image";
     public static final String OPT_STYLESHEET = "stylesheet";
 
-    @JsonIgnore @Getter private String line;
-    @Getter private BlockTarget target;
+    @JsonIgnore @Getter private final String line;
+    @Getter private final BlockTarget target;
 
     @Getter private List<String> domainExclusions;
     @Getter private List<String> typeMatches;
@@ -33,7 +36,7 @@ public class BlockSpec {
     @Getter private List<String> typeExclusions;
     @Getter private List<String> otherOptions;
 
-    @Getter private BlockSelector selector;
+    @Getter private final BlockSelector selector;
     public boolean hasSelector() { return selector != null; }
     public boolean hasNoSelector() { return !hasSelector(); }
 
@@ -88,6 +91,9 @@ public class BlockSpec {
     public static List<BlockSpec> parse(String line) {
 
         line = line.trim();
+        if (line.startsWith(BUBBLE_BLOCK_SPEC_PREFIX)) {
+            return new SingletonList<>(new BlockSpec(line, BlockTarget.parseBubbleLine(line), null, null));
+        }
         int optionStartPos = line.indexOf('$');
         int selectorStartPos = line.indexOf("#");
 
@@ -127,7 +133,10 @@ public class BlockSpec {
         return specs;
     }
 
-    public boolean matches(String fqdn, String path, String contentType) {
+    public boolean matches(String fqdn, String path, String contentType, String referer) {
+
+        if (target.hasConditions()) return target.conditionsMatch(fqdn, path, contentType, referer);
+
         if (target.hasDomainRegex() && target.getDomainPattern().matcher(fqdn).find()) {
             return checkDomainExclusionsAndType(fqdn, contentType);
 
