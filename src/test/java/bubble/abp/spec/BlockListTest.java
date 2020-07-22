@@ -164,7 +164,8 @@ public class BlockListTest {
             {"~foo.bar.com~[\"referer ne bar.com\"]", "bar.com", "bar.com", ALLOW},
             {"~foo.bar.com~[\"referer ne bar.com\"]", "foo.bar.com", "bar.com", ALLOW},
             {"~foo.bar.com~[\"referer ne bar.com\"]", "foo.bar.com", "foo.com", BLOCK},
-            {"~foo.bar.com~[\"referer ne bar.com\"]", "bar.com", "foo.com", ALLOW},
+            {"~foo.bar.com~[\"referer ne bar.com\"]", "bar.com", "foo.com", ALLOW}
+            // todo: add more tests for other operators, regex_find vs regex_exact, etc
     };
 
     @Test public void testConditionalMatches () throws Exception {
