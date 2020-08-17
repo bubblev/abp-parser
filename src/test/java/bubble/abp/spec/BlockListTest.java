@@ -91,6 +91,8 @@ public class BlockListTest {
             {"/foo/*/img",            "example.com",          "/foo/x/img",      BLOCK},
             {"/foo/*/img",            "example.com",          "/foo/x/img.png",  ALLOW},
             {"/foo/*/img",            "example.com",          "/foo/x/y/z//img", BLOCK},
+            {"/*img*",                "example.com",          "/foo/x/y/z/img",  BLOCK},
+            {"/*img*",                "example.com",          "/foo/x/y/z/img/x",BLOCK},
 
             // path matching with regex
             {"/foo/(apps|ads)/img.+/",  "example.com",          "/foo/x/y/z//img",      ALLOW},
