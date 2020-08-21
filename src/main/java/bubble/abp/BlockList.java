@@ -6,8 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,17 +21,18 @@ public class BlockList {
     @Getter private final Set<BlockSpec> whitelist = new HashSet<>();
 
     public void addToRejectList(String domain) { rejectList.add(domain); }
-    public void addToRejectList(List<String> domains) { for (String domain : domains) addToRejectList(domain); }
+    public void addToRejectList(Collection<String> domains) { rejectList.addAll(domains); }
 
     public void addToBlacklist(BlockSpec spec) { blacklist.add(spec); }
-    public void addToBlacklist(List<BlockSpec> specs) { for (BlockSpec spec : specs) addToBlacklist(spec); }
+    public void addToBlacklist(Collection<BlockSpec> specs) { blacklist.addAll(specs); }
 
     public void addToWhitelist(BlockSpec spec) { whitelist.add(spec); }
-    public void addToWhitelist(List<BlockSpec> specs) { for (BlockSpec spec : specs) addToWhitelist(spec); }
+    public void addToWhitelist(Collection<BlockSpec> specs) { whitelist.addAll(specs); }
 
     public void merge(BlockList other) {
-        for (BlockSpec allow : other.getWhitelist()) addToWhitelist(allow);
-        for (BlockSpec block : other.getBlacklist()) addToBlacklist(block);
+        addToWhitelist(other.getWhitelist());
+        addToBlacklist(other.getBlacklist());
+        addToRejectList(other.getRejectList());
     }
 
     public BlockDecision getDecision(String fqdn, String path) { return getDecision(fqdn, path, null, null, false); }
