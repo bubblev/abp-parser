@@ -21,6 +21,8 @@ public class BlockListSource {
     public static final String INCLUDE_PREFIX = "!#include ";
     public static final String TITLE_PREFIX = "!Title:";
     public static final String DESCRIPTION_PREFIX = "!Description:";
+    public static final String WHITELIST_PREFIX = "@@";
+    public static final String REJECT_LIST_PREFIX = "~~";
 
     @Getter @Setter private String url;
 
@@ -79,18 +81,24 @@ public class BlockListSource {
                 throw new IOException("addLine: error including path: " + includeUrl + ": " + shortError(e));
             }
         } else if (lineNumber < 20 && empty(title) && line.replace(" ", "").startsWith(TITLE_PREFIX)) {
-            title = line.substring(line.indexOf(":")+1).trim();
+            title = getMetadata(line);
 
         } else if (lineNumber < 20 && empty(description) && line.replace(" ", "").startsWith(DESCRIPTION_PREFIX)) {
-            description = line.substring(line.indexOf(":")+1).trim();
+            description = getMetadata(line);
 
         } else if (line.startsWith("!")) {
             // comment, nothing to add
             return;
         }
         try {
-            if (line.startsWith("@@")) {
-                blockList.addToWhitelist(BlockSpec.parse(line));
+            if (line.startsWith(WHITELIST_PREFIX)) {
+                blockList.addToWhitelist(BlockSpec.parse(line.substring(WHITELIST_PREFIX.length())));
+
+            } else if (line.startsWith(REJECT_LIST_PREFIX)) {
+                line = line.substring(REJECT_LIST_PREFIX.length());
+                blockList.addToBlacklist(BlockSpec.parse(line));
+                blockList.addToRejectList(line.trim());
+
             } else {
                 blockList.addToBlacklist(BlockSpec.parse(line));
             }
@@ -98,6 +106,8 @@ public class BlockListSource {
             log.warn("download("+url+"): error parsing line (skipping due to "+shortError(e)+"): " + line);
         }
     }
+
+    private String getMetadata(String line) { return line.substring(line.indexOf(":")+1).trim(); }
 
     public void addEntries(String[] entries) throws IOException { for (String entry : entries) addLine(null, 1, entry); }
 

@@ -16,16 +16,18 @@ import static org.cobbzilla.util.http.HttpContentTypes.isHtml;
 @NoArgsConstructor @Accessors(chain=true) @Slf4j
 public class BlockList {
 
+    @Getter private final Set<String> rejectList = new HashSet<>();
     @Getter private final Set<BlockSpec> blacklist = new HashSet<>();
     @Getter private final Set<BlockSpec> whitelist = new HashSet<>();
 
-    public void addToWhitelist(BlockSpec spec) { whitelist.add(spec); }
-
-    public void addToWhitelist(List<BlockSpec> specs) { for (BlockSpec spec : specs) addToWhitelist(spec); }
+    public void addToRejectList(String domain) { rejectList.add(domain); }
+    public void addToRejectList(List<String> domains) { for (String domain : domains) addToRejectList(domain); }
 
     public void addToBlacklist(BlockSpec spec) { blacklist.add(spec); }
-
     public void addToBlacklist(List<BlockSpec> specs) { for (BlockSpec spec : specs) addToBlacklist(spec); }
+
+    public void addToWhitelist(BlockSpec spec) { whitelist.add(spec); }
+    public void addToWhitelist(List<BlockSpec> specs) { for (BlockSpec spec : specs) addToWhitelist(spec); }
 
     public void merge(BlockList other) {
         for (BlockSpec allow : other.getWhitelist()) addToWhitelist(allow);
