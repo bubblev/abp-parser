@@ -44,7 +44,6 @@ public class BlockList {
     public BlockDecision getDecision(String fqdn, String path, String contentType, String referer, boolean primary) {
         for (BlockSpec allow : whitelist) {
             if (allow.matches(fqdn, path, contentType, referer)) {
-                log.warn("getDecision: found whitelist match for fqdn="+fqdn+", path="+path);
                 return BlockDecision.ALLOW;
             }
         }
