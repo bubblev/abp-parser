@@ -43,6 +43,7 @@ public class BlockTarget {
     public boolean conditionsMatch(String fqdn, String path, String contentType, String referer) {
         if (!hasConditions()) return false;
         if (!fqdn.equalsIgnoreCase(partialDomainBlock)) return false;
+        if (hasRegex() && !getRegexPattern().matcher(fqdn+path).matches()) return false;
         for (BubbleBlockCondition condition : conditions) {
             if (!condition.matches(fqdn, path, contentType, referer)) return false;
         }
@@ -59,9 +60,15 @@ public class BlockTarget {
         final int conditionsStart = line.indexOf(BUBBLE_BLOCK_SPEC_PREFIX);
         if (conditionsStart == -1) throw new IllegalArgumentException("parseBubbleLine: invalid line, expected "+BUBBLE_BLOCK_SPEC_PREFIX+" to begin conditions: "+line);
 
-        final BlockTarget target = new BlockTarget();
-        target.setPartialDomainBlock(line.substring(0, conditionsStart));
-        target.setConditions(BubbleBlockCondition.parse(json(line.substring(conditionsStart+1), String[].class)));
+        final String data = line.substring(0, conditionsStart);
+        final BlockTarget target = parseTarget(data);
+        final int slash = data.indexOf("/");
+        if (slash == -1) {
+            target.setPartialDomainBlock(data);
+        } else {
+            target.setPartialDomainBlock(data.substring(0, slash));
+        }
+        target.setConditions(BubbleBlockCondition.parse(json(line.substring(conditionsStart + 1), String[].class)));
         return target;
     }
 

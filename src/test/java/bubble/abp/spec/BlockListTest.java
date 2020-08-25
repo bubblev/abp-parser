@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+import static bubble.abp.BlockListSource.WHITELIST_PREFIX;
 import static org.junit.Assert.assertEquals;
 
 public class BlockListTest {
@@ -187,6 +188,46 @@ public class BlockListTest {
                     expected,
                     blockList.getDecision(fqdn, "/", null, referer, true).getDecisionType());
         }
+    }
 
+    public static final String[][][] WHITELIST_CONDITIONAL_SPECS = {
+    // rules
+    {
+        {"foo.bar.com"},
+        {"@@foo.bar.com/baz"},
+        {"@@~foo.bar.com/quux~[\"referer_host eq bar.com\"]"},
+        {"@@~foo.bar.com/quux~[\"referer_host eq foo.bar.com\"]"},
+    },
+    // test
+    {
+        // fqdn          // path      // referer      // expect
+        {"foo.com",      "/",         "foo.com",      ALLOW},
+        {"foo.bar.com",  "/",         "bar.com",      BLOCK},
+        {"foo.bar.com",  "/foo",      "bar.com",      BLOCK},
+        {"foo.bar.com",  "/baz",      "bar.com",      ALLOW},
+        {"foo.bar.com",  "/quux",     "baz.com",      BLOCK},
+        {"foo.bar.com",  "/quux",     "bar.com",      ALLOW},
+        {"foo.bar.com",  "/quux",     "foo.bar.com",  ALLOW},
+    }
+    };
+    @Test public void testWhitelistConditionalMatches () throws Exception {
+        final BlockList blockList = new BlockList();
+        for (String[] rule : WHITELIST_CONDITIONAL_SPECS[0]) {
+            final String line = rule[0];
+            if (line.startsWith(WHITELIST_PREFIX)) {
+                blockList.addToWhitelist(BlockSpec.parse(line.substring(WHITELIST_PREFIX.length())));
+            } else {
+                blockList.addToBlacklist(BlockSpec.parse(line));
+            }
+        }
+        for (String[] test : WHITELIST_CONDITIONAL_SPECS[1]) {
+            final BlockDecisionType expected = BlockDecisionType.fromString(test[3]);
+            final String fqdn = test[0];
+            final String path = test[1];
+            final String referer = test[2];
+            assertEquals("expected "+expected+" for test: fqdn="+fqdn+", path="+path+", referer="+referer,
+                    expected,
+                    blockList.getDecision(fqdn, path, null, referer, true).getDecisionType());
+        }
     }
 }

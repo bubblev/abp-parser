@@ -14,8 +14,10 @@ import java.util.List;
 
 import static bubble.abp.selector.BlockSelector.buildSelector;
 import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
+import static org.cobbzilla.util.daemon.ZillaRuntime.hashOf;
 
-@Slf4j @EqualsAndHashCode(of={"target", "domainExclusions", "typeMatches", "typeExclusions", "selector"})
+@Slf4j
+@EqualsAndHashCode(of={"target", "domainExclusions", "typeMatches", "typeExclusions", "selector", "conditionsHash"})
 public class BlockSpec {
 
     public static final String BUBBLE_BLOCK_SPEC_PREFIX = "~";
@@ -40,10 +42,13 @@ public class BlockSpec {
     public boolean hasSelector() { return selector != null; }
     public boolean hasNoSelector() { return !hasSelector(); }
 
+    @JsonIgnore @Getter private final String conditionsHash;
+
     public BlockSpec(String line, BlockTarget target, List<String> options, BlockSelector selector) {
         this.line = line;
         this.target = target;
         this.selector = selector;
+        this.conditionsHash = target.hasConditions() ? hashOf((Object) target.getConditions()) : null;
         if (options != null) {
             for (String opt : options) {
                 if (opt.startsWith(OPT_DOMAIN_PREFIX)) {
@@ -92,7 +97,8 @@ public class BlockSpec {
 
         line = line.trim();
         if (line.startsWith(BUBBLE_BLOCK_SPEC_PREFIX)) {
-            return new SingletonList<>(new BlockSpec(line, BlockTarget.parseBubbleLine(line), null, null));
+            final BlockTarget target = BlockTarget.parseBubbleLine(line);
+            return new SingletonList<>(new BlockSpec(line, target, null, null));
         }
         int optionStartPos = line.indexOf('$');
         int selectorStartPos = line.indexOf("#");

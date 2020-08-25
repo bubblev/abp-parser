@@ -1,5 +1,6 @@
 package bubble.abp;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,7 +11,8 @@ import static org.cobbzilla.util.daemon.ZillaRuntime.shortError;
 import static org.cobbzilla.util.http.HttpSchemes.SCHEME_HTTP;
 import static org.cobbzilla.util.http.HttpSchemes.SCHEME_HTTPS;
 
-@NoArgsConstructor @Accessors(chain=true) @Slf4j
+@NoArgsConstructor @Accessors(chain=true) @EqualsAndHashCode
+@Slf4j
 public class BubbleBlockCondition {
 
     @Getter @Setter private BubbleBlockConditionField field;
