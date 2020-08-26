@@ -5,12 +5,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.cobbzilla.util.collection.ExpirationEvictionPolicy;
+import org.cobbzilla.util.collection.ExpirationMap;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.cobbzilla.util.daemon.ZillaRuntime.hashOf;
 import static org.cobbzilla.util.http.HttpContentTypes.isHtml;
 
 @NoArgsConstructor @Accessors(chain=true) @Slf4j
@@ -41,23 +45,29 @@ public class BlockList {
         return getDecision(fqdn, path, null, null, primary);
     }
 
-    public BlockDecision getDecision(String fqdn, String path, String contentType, String referer, boolean primary) {
-        for (BlockSpec allow : whitelist) {
-            if (allow.matches(fqdn, path, contentType, referer)) {
-                return BlockDecision.ALLOW;
-            }
-        }
-        final BlockDecision decision = new BlockDecision();
-        for (BlockSpec block : blacklist) {
-            if (block.matches(fqdn, path, contentType, referer)) {
-                if (!block.hasSelector()) return BlockDecision.BLOCK;
-                decision.add(block);
+    private final ExpirationMap<String, BlockDecision> decisionCache
+            = new ExpirationMap<>(100, MINUTES.toMillis(10), ExpirationEvictionPolicy.atime);
 
-            } else if (block.hasSelector() && (!primary || isHtml(contentType))) {
-                decision.add(block);
+    public BlockDecision getDecision(String fqdn, String path, String contentType, String referer, boolean primary) {
+        final String cacheKey = hashOf(fqdn, path, contentType, referer, primary);
+        return decisionCache.computeIfAbsent(cacheKey, k -> {
+            for (BlockSpec allow : whitelist) {
+                if (allow.matches(fqdn, path, contentType, referer)) {
+                    return BlockDecision.ALLOW;
+                }
             }
-        }
-        return decision;
+            final BlockDecision decision = new BlockDecision();
+            for (BlockSpec block : blacklist) {
+                if (block.matches(fqdn, path, contentType, referer)) {
+                    if (!block.hasSelector()) return BlockDecision.BLOCK;
+                    decision.add(block);
+
+                } else if (block.hasSelector() && (!primary || isHtml(contentType))) {
+                    decision.add(block);
+                }
+            }
+            return decision;
+        });
     }
 
     public BlockDecision getFqdnDecision(String fqdn) {
