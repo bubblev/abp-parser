@@ -173,7 +173,7 @@ public class SelectorTest {
                 @Override public InputStream urlInputStream() { return loadResourceAsStream("AntiMalwareABP.txt"); }
             }.download();
             assertEquals("error parsing some lines", 0, source.getBlockList().getWhitelist().size());
-            assertEquals("error parsing some lines", 553, source.getBlockList().getBlacklist().size());
+            assertEquals("error parsing some lines", 556, source.getBlockList().getBlacklist().size());
         } catch (Exception e) {
             fail("testComplexList: badness: "+shortError(e));
         }
