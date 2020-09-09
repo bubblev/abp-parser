@@ -92,12 +92,19 @@ public class BlockList {
         return whitelist.stream().filter(BlockSpec::hasNoSelector).collect(Collectors.toSet());
     }
 
+    public Set<String> getWhitelistDomainNames() {
+        return getWhitelistDomains().stream()
+                .filter(m -> m.getTarget().hasFullDomainBlock() || m.getTarget().hasPartialDomainBlock())
+                .map(m -> m.getTarget().hasFullDomainBlock() ? m.getTarget().getFullDomainBlock() : m.getTarget().getPartialDomainBlock())
+                .collect(Collectors.toSet());
+    }
+
     @JsonIgnore public Set<String> getFullyBlockedDomains() {
         final Set<String> blockedDomains = new HashSet<>();
         final Set<BlockSpec> whitelistDomains = getWhitelistDomains();
         for (BlockSpec spec : getBlacklistDomains()) {
             if (whitelistDomains.contains(spec) || !spec.getTarget().hasFullDomainBlock()) continue;
-            blockedDomains.add(spec.getTarget().getFullDomainBlock());
+            if (!spec.getTarget().hasConditions()) blockedDomains.add(spec.getTarget().getFullDomainBlock());
         }
         return blockedDomains;
     }
