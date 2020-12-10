@@ -18,7 +18,7 @@ import static org.cobbzilla.util.daemon.ZillaRuntime.empty;
 import static org.cobbzilla.util.http.HttpSchemes.stripScheme;
 import static org.cobbzilla.util.json.JsonUtil.json;
 import static org.cobbzilla.util.json.JsonUtil.jsonQuoteRegex;
-import static org.cobbzilla.util.string.ValidationRegexes.HOST_PATTERN;
+import static org.cobbzilla.util.string.ValidationRegexes.isHostname;
 
 @NoArgsConstructor @Accessors(chain=true) @EqualsAndHashCode(of={"domainRegex", "regex"})
 public class BlockTarget {
@@ -51,7 +51,7 @@ public class BlockTarget {
     }
 
     public static String hostOrNull(String hostPart) {
-        return HOST_PATTERN.matcher(hostPart).matches() ? hostPart : null;
+        return isHostname(hostPart) ? hostPart : null;
     }
 
     public static BlockTarget parseBubbleLine(String line) {
