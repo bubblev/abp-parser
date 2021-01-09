@@ -5,10 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cobbzilla.util.collection.ExpirationEvictionPolicy;
 import org.cobbzilla.util.collection.ExpirationMap;
+import org.cobbzilla.util.string.ValidationRegexes;
 
 import java.util.regex.Pattern;
-
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 @AllArgsConstructor @Slf4j
 public enum BubbleBlockConditionOperation {
@@ -20,8 +19,9 @@ public enum BubbleBlockConditionOperation {
     contains ((input, value) -> value.contains(input));
 
     private static final ExpirationMap<String, Pattern> PATTERN_CACHE = new ExpirationMap<>(ExpirationEvictionPolicy.atime);
+
     private static Pattern pattern(String value) {
-        return PATTERN_CACHE.computeIfAbsent(value, k -> Pattern.compile(k, CASE_INSENSITIVE));
+        return PATTERN_CACHE.computeIfAbsent(value, ValidationRegexes::safePattern);
     }
 
     private interface BubbleBlockConditionComparison { boolean matches(String input, String value); }

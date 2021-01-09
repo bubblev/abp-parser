@@ -37,6 +37,14 @@ public class BlockTarget {
     public boolean hasRegex() { return !empty(regex); }
     @JsonIgnore @Getter(lazy=true) private final Pattern regexPattern = hasRegex() ? Pattern.compile(getRegex()) : null;
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public BlockTarget validatePatterns() {
+        // force lazy-init patterns to initialize, validates regex patterns
+        if (hasRegex()) getRegexPattern();
+        if (hasDomainRegex()) getDomainPattern();
+        return this;
+    }
+
     @Getter @Setter private BubbleBlockCondition[] conditions;
     public boolean hasConditions () { return !empty(conditions); }
 
@@ -144,7 +152,8 @@ public class BlockTarget {
         return new BlockTarget()
                 .setDomainRegex(domainRegex)
                 .setRegex(regex)
-                .setFullDomainBlock(regex == null ? fullBlock : null);
+                .setFullDomainBlock(regex == null ? fullBlock : null)
+                .validatePatterns();
     }
 
     private static String parseWildcardMatch(String data) {
